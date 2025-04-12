@@ -1,9 +1,9 @@
 {
   "name": "take-home",
   "version": "1.0.0",
-  "main": "dist/app.js",
+  "main": "dist/app.ts",
   "scripts": {
-    "start": "node dist/app.js",
+    "start": "node dist/app.ts",
     "dev": "nodemon --exec ts-node src/app.ts",
     "build": "tsc",
     "test": "jest",
