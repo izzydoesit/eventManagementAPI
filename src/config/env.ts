@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import dotenv from 'dotenv';
+import { Algorithm } from 'jsonwebtoken';
 
 dotenv.config();
 
@@ -9,10 +10,10 @@ const envSchema = z.object({
     MONGODB_URI: z.string().url('Invalid MongoDB URI'),
     MONGODB_TEST_URI: z.string().url('Invalid MongoDB test URI').optional(),
     CORS_ORIGIN: z.string().default('*'),
-    JWT_SECRET: z.string().min(32, 'JWT secret must be at least 32 characters long'),
-    JWT_EXPIRES_IN: z.string().default('1d'),
-    JWT_REFRESH_EXPIRES_IN: z.string().default('7d'),
-    JWT_ALGORITHM: z.enum(['HS256', 'HS384', 'HS512']).default('HS256'),
+    JWT_SECRET: z.string().min(32),
+    JWT_EXPIRES_IN: z.string().regex(/^\d+[hdwmy]$/, 'Invalid expiration format'),
+    JWT_REFRESH_EXPIRES_IN: z.string().regex(/^\d+[hdwmy]$/, 'Invalid expiration format'),
+    JWT_ALGORITHM: z.enum(['HS256', 'HS384', 'HS512']).default('HS256') as z.ZodType<Algorithm>,
   });
 
   type EnvSchema = z.infer<typeof envSchema>;
