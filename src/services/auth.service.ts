@@ -1,11 +1,11 @@
-import { User } from '../models/user.model';
+import { User, IUser } from '../models/user.model';
 import { AuthResponse, LoginCredentials, RegisterData } from '../types/auth.types';
 import { generateTokens } from '../utils/jwt';
-import { hashPassword, comparePassword } from '../utils/password';
+import { hashPassword, comparePasswords } from '../utils/password';
 
 export class AuthService {
     async register(data: RegisterData): Promise<AuthResponse> {
-        const existingUser = await User.findOne({ 
+        const existingUser: IUser | null = await User.findOne({ 
             email: data.email,
         });
         if (existingUser) {
@@ -13,16 +13,16 @@ export class AuthService {
         }
 
         const hashedPassword = await hashPassword(data.password);
-        const user = await User.create({
+        const user: IUser = await User.create({
             ...data,
             password: hashedPassword,
         });
 
-        const tokens = generateTokens(user.id);
+        const tokens = generateTokens(user.id.toString());
 
         return {
             user: {
-                id: user.id,
+                id: user.id.toString(),
                 name: user.name,
                 email: user.email,
             },
@@ -31,26 +31,27 @@ export class AuthService {
     }
 
     async login(credentials: LoginCredentials): Promise<AuthResponse> {
-        const user = await User.findOne({
+        const user: IUser | null = await User.findOne({
             email: credentials.email,
         });
         if (!user) {
             throw new Error('Invalid email');
         }
-        const isValidPassword = await comparePasswords(credentials.password, user.password);
+        
+        const isValidPassword = await user.comparePassword(credentials.password);
         if (!isValidPassword) {
             throw new Error('Invalid password');
         }
 
-        const tokens = generateTokens(user.id);
+        const tokens = generateTokens(user.id.toString());
 
         return {
             user: {
-                id: user.id,
+                id: user.id.toString(),
                 name: user.name,
                 email: user.email,
             },
             tokens,
-        }
+        };
     }
 }
