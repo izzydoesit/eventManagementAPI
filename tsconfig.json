@@ -22,6 +22,6 @@
       },
       "isolatedModules": true,
     },
-    "include": ["src/**/*"],
+    "include": ["src/**/*", "jest-mongodb-config.js"],
     "exclude": ["node_modules", "dist", "**/*.test.ts", "src/tests"]
   }
