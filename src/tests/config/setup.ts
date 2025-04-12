@@ -1,30 +1,24 @@
-import { config } from 'dotenv';
 import mongoose from 'mongoose';
-import path from 'path';
+import { MongoMemoryServer } from 'mongodb-memory-server';
 
-config({ path: path.join(__dirname, '../../../.env.test') });
+let mongoServer: MongoMemoryServer;
 
 beforeAll(async () => {
-  try {
-    await mongoose.connect(process.env.MONGODB_TEST_URI || '');
+    mongoServer = await MongoMemoryServer.create();
+    await mongoose.connect(mongoServer.getUri());
     console.log('Test database connected');
-  } catch (error) {
-    console.error('Test database connection error:', error);
-    process.exit(1);
-  }
 });
 
-beforeEach(async () => {
-  if (mongoose.connection.db) {
+afterEach(async () => {
     const collections = await mongoose.connection.db.collections();
-    await Promise.all(
-      collections.map((collection) => collection.deleteMany({}))
-    );
+    for (const collection of collections) {
+        await collection.deleteMany({});
+    }
     console.log('Test database collections cleared');
-  }
 });
 
 afterAll(async () => {
-  await mongoose.connection.close();
-  console.log('Test database connection closed');
+    await mongoose.disconnect();
+    await mongoServer.stop();
+    console.log('Test database connection closed');
 });
