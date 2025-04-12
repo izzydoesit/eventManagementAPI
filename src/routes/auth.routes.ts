@@ -1,7 +1,6 @@
 import express from 'express';
 import { 
-  AuthController,
-  register,
+  AuthController
 } from '../controllers/auth.controller';
 import { validate } from '../middleware/validate.middleware';
 import { 
