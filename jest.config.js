@@ -1,11 +1,20 @@
+const { clear } = require("console");
+
 module.exports = {
-    preset: '@shelf/jest-mongodb',
+    preset: 'ts-jest',
     testEnvironment: 'node',
+    testTimeout: 30000,
+    verbose: true,
+    detectOpenHandles: true,
+    forceExit: true,
+    clearMocks: true,
+    restoreMocks: true,
+    resetMocks: true,
     roots: ['<rootDir>/src'],
+    setupFilesAfterEnv: ['<rootDir>/src/tests/config/setup.ts'],
     moduleNameMapper: {
         '^@/(.*)$': '<rootDir>/src/$1'
     },
-    setupFilesAfterEnv: ['<rootDir>/src/tests/config/setup.ts'],
     collectCoverageFrom: [
         'src/**/*.{ts,tsx}',
         '!src/**/*.d.ts'
