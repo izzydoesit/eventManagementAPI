@@ -6,7 +6,7 @@ import { validate } from '../middleware/validate.middleware';
 import { 
   registerUserSchema,
 } from '../schemas/user.schema';
-import { loginSchema, registerSchema } from '@/schemas/auth.schema';
+import { loginSchema, registerSchema } from '../schemas/auth.schema';
 
 const router = express.Router();
 const authController = new AuthController();
