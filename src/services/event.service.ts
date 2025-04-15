@@ -1,6 +1,8 @@
 import { Event, IEvent } from '../models/event.model';
 import { CreateEventInput, UpdateEventInput } from '../schemas/event.schema';
 import { IUser } from '../models/user.model';
+import { Rsvp, IRsvp } from '../models/rsvp.model';
+import { CreateRsvpInput } from '../schemas/rsvp.schema';
 
 export class EventService {
     async createEvent(data: CreateEventInput, organizerId: IUser['_id']): Promise<IEvent> {
@@ -12,10 +14,38 @@ export class EventService {
         return event;
     }
 
-    async getEvents(query: Partial<IEvent> = {}): Promise<IEvent[]> {
-        return Event.find({ ...query, status: 'published' })
+    async getEvents(query: any = {}, page: number = 1, limit: number = 10): Promise<{ events: IEvent[], total: number }> {
+        const filter: any = { status: 'published' };
+
+        if (query.category) {
+            filter.category = query.category;
+        }
+
+        if (query.location) {
+            filter.location = { $regex: query.location, $options: 'i' }; // Case-insensitive search
+        }
+
+        if (query.date) {
+            const searchDate = new Date(query.date);
+            const nextDay = new Date(searchDate);
+            nextDay.setDate(searchDate.getDate() + 1);
+
+            filter.date = {
+                $gte: searchDate,
+                $lt: nextDay
+            };
+        }
+
+        const skip = (page - 1) * limit;
+        const events = await Event.find(filter)
             .populate('organizer', 'name email')
-            .sort({ date: 1 });
+            .sort({ date: 1 })
+            .skip(skip)
+            .limit(limit);
+
+        const total = await Event.countDocuments(filter);
+
+        return { events, total };
     }
 
     async getEventById(eventId: string): Promise<IEvent | null> {
@@ -37,22 +67,36 @@ export class EventService {
         return result.deletedCount > 0;
     }
 
-    async registerForEvent(eventId: string, userId: string): Promise<IEvent | null> {
+    async registerForEvent(eventId: string, userId: string, data: CreateRsvpInput): Promise<IRsvp> {
         const event = await Event.findById(eventId);
         
         if (!event || event.status !== 'published') {
             throw new Error('Event not found or not available');
         }
-
-        if (event.maxAttendees && event.attendees.length >= event.maxAttendees) {
-            throw new Error('Event is full');
+    
+        const existingRsvp = await Rsvp.findOne({ user: userId, event: eventId });
+        if (existingRsvp) {
+            throw new Error('Already RSVP\'d for this event');
         }
+    
+        const rsvp = await Rsvp.create({
+            user: userId,
+            event: eventId,
+            status: data.status
+        });
+    
+        return rsvp;
+    }
 
-        if (event.attendees.includes(userId)) {
-            throw new Error('Already registered for this event');
-        }
+    async getEventAttendees(eventId: string): Promise<IRsvp[]> {
+        return Rsvp.find({ event: eventId })
+            .populate('user', 'name email')
+            .populate('event', 'title');
+    }
 
-        event.attendees.push(userId);
-        return event.save();
+    async getEventsUserAttends(userId: string): Promise<IRsvp[]> {
+        return Rsvp.find({ user: userId })
+            .populate('event', 'title description date location')
+            .populate('user', 'name email');
     }
 }
