@@ -61,6 +61,67 @@ describe('EventService', () => {
 
             expect(result).toEqual(mockEvents);
         });
+
+        it('should filter events by category', async () => {
+            const mockEvents = [
+                { _id: mockEventId, title: 'Test Event', status: 'published', category: 'workshop' }
+            ];
+
+            (Event.find as jest.Mock).mockReturnValue({
+                populate: jest.fn().mockReturnValue({
+                    sort: jest.fn().mockResolvedValue(mockEvents)
+                })
+            });
+
+            const result = await eventService.getEvents({ category: 'workshop' });
+
+            expect(Event.find).toHaveBeenCalledWith({ status: 'published', category: 'workshop' });
+            expect(result).toEqual(mockEvents);
+        });
+
+        it('should filter events by location', async () => {
+            const mockEvents = [
+                { _id: mockEventId, title: 'Test Event', status: 'published', location: 'Test Location' }
+            ];
+
+            (Event.find as jest.Mock).mockReturnValue({
+                populate: jest.fn().mockReturnValue({
+                    sort: jest.fn().mockResolvedValue(mockEvents)
+                })
+            });
+
+            const result = await eventService.getEvents({ location: 'Test Location' });
+
+            expect(Event.find).toHaveBeenCalledWith({ status: 'published', location: { $regex: 'Test Location', $options: 'i' } });
+            expect(result).toEqual(mockEvents);
+        });
+
+        it('should filter events by date', async () => {
+            const mockEvents = [
+                { _id: mockEventId, title: 'Test Event', status: 'published', date: new Date('2025-12-31') }
+            ];
+
+            const searchDate = new Date('2025-12-31');
+            const nextDay = new Date(searchDate);
+            nextDay.setDate(searchDate.getDate() + 1);
+
+            (Event.find as jest.Mock).mockReturnValue({
+                populate: jest.fn().mockReturnValue({
+                    sort: jest.fn().mockResolvedValue(mockEvents)
+                })
+            });
+
+            const result = await eventService.getEvents({ date: '2025-12-31' });
+
+            expect(Event.find).toHaveBeenCalledWith({
+                status: 'published',
+                date: {
+                    $gte: searchDate,
+                    $lt: nextDay
+                }
+            });
+            expect(result).toEqual(mockEvents);
+        });
     });
 
 });
