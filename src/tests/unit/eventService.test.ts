@@ -1,5 +1,5 @@
 import { EventService } from '../../services/event.service';
-import { Event, IEvent } from '../../models/event.model';
+import { Event } from '../../models/event.model';
 import { Rsvp } from '../../models/rsvp.model';
 import mongoose from 'mongoose';
 import { CreateEventInput, UpdateEventInput } from '../../schemas/event.schema';
