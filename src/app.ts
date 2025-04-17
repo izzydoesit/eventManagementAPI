@@ -3,9 +3,9 @@ import mongoose from 'mongoose';
 import cors from 'cors';
 import helmet from 'helmet';
 import authRoutes from './routes/auth.routes';
+import eventRoutes from './routes/event.routes';
 import { env } from './config/env';
 
-// Initialize express app
 const app = express();
 
 const getMongoUri = () => {
@@ -43,10 +43,10 @@ app.use(cors({
 }));
 app.use(helmet());
 
-// Routes
 app.use('/api/auth', authRoutes);
+app.use('/api/event', eventRoutes);
 
-// Error handling middleware
+
 app.use((err: Error & { statusCode?: number }, req: express.Request, res: express.Response, next: express.NextFunction) => {
   console.error(err.stack);
   
@@ -65,7 +65,7 @@ app.use((req: express.Request, res: express.Response) => {
   return res.status(404).json({ message: 'Route not found' });
 });
 
-// Start server
+
 const server = app.listen(env.PORT, () => {
   console.log(`Server running in ${env.NODE_ENV} mode on port ${env.PORT}`);
 });
