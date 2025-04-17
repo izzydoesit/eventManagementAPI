@@ -2,8 +2,7 @@ import request from 'supertest';
 import express, { Request, Response, NextFunction } from 'express';
 import { AuthController } from '../../controllers/auth.controller';
 import authRoutes from '../../routes/auth.routes';
-// import { validate } from '../../middleware/validate';
-jest.clearAllMocks();
+import { validate } from '../../middleware/validate.middleware';
 
 jest.mock('../../controllers/auth.controller');
 jest.mock('../../middleware/validate.middleware', () => ({
@@ -36,10 +35,6 @@ describe('Auth Routes', () => {
             app.use('/api/auth', authRoutes);
         });
     });
-
-    // afterEach(() => {
-    //     jest.clearAllMocks();
-    // });
 
     describe('POST /register', () => {
         it('should route to auth controller register', async () => {

@@ -1,11 +1,10 @@
 import request from 'supertest';
-import express, { Express } from 'express';
+import express from 'express';
 import { EventController } from '../../controllers/event.controller';
-import { Server } from 'http';
-
+import eventRoutes from '../../routes/event.routes';
 
 jest.mock('../../controllers/event.controller');
-jest.mock('../../middleware/authenticate.middleware', () => ({
+jest.mock('../../middleware/auth.middleware', () => ({
     authenticate: (_req: any, _res: any, next: any) => {
         _req.user = { id: 'mockUserId' };
         next();
@@ -15,18 +14,11 @@ jest.mock('../../middleware/validate.middleware', () => ({
     validate: () => (_req: any, _res: any, next: any) => next()
 }));
 
-// import eventRoutes from '../../routes/event.routes';
 
 
 describe('Event Routes', () => {
-    let app: Express;
-    let server: Server;
+    let app: express.Application;
     let mockEventController: jest.Mocked<EventController>;
-    // let server: ReturnType<typeof app.listen>;
-
-    // beforeAll(() => {
-
-    // })
 
     beforeEach(() => {
         jest.clearAllMocks();
@@ -40,39 +32,29 @@ describe('Event Routes', () => {
             getEventById: jest.fn().mockResolvedValue({}),
             updateEvent: jest.fn().mockResolvedValue({}),
             deleteEvent: jest.fn().mockResolvedValue(true),
-            registerForEvent: jest.fn().mockResolvedValue({})
+            registerForEvent: jest.fn().mockResolvedValue({}),
+            getEventAttendees: jest.fn().mockResolvedValue([]),
+            getEventsUserAttends: jest.fn().mockResolvedValue([])
         } as unknown as jest.Mocked<EventController>;
 
         (EventController as jest.Mock).mockImplementation(() => mockEventController);
-
+        
         const eventRoutes = require('../../routes/event.routes').default;
-        app.use('/api/events', eventRoutes);
-
-        server = app.listen(0);
+        app.use('/api/event', eventRoutes);
     });
 
-    afterEach((done) => {
-        if (server) server.close(done);
-        else done();
-    });
-
-    // afterAll((done) => {
-    //     done();
-    // });
-
-    describe('GET /events', () => {
+    describe('GET /event', () => {
         it('should return events list', async () => {
-            const agent = request.agent(server);
-            const response = await agent
-                .get('/api/events')
+            const response = await request(app)
+                .get('/api/event')
                 .expect(200);
-
+            
             expect(mockEventController.getEvents).toHaveBeenCalled();
             expect(response.body).toEqual([]);
         });
     });
 
-    describe('POST /events', () => {
+    describe('POST /event', () => {
         it('should create a new event', async () => {
             const mockEvent = {
                 title: 'Test Event',
@@ -82,9 +64,8 @@ describe('Event Routes', () => {
                 category: 'workshop'
             };
 
-            const agent = request.agent(server);
-            const response = await agent
-                .post('/api/events')
+            const response = await request(app)
+                .post('/api/event')
                 .set('Authorization', 'Bearer mock-token')
                 .send(mockEvent)
                 .expect(201);
