@@ -10,8 +10,8 @@ export class AuthController {
     this.authService = authService || new AuthService();
   }
 
-  async register(req: Request<{}, {}, RegisterInput>, res: Response) {
-    logger.info('Registering user');
+  async register(req: Request<{}, {}, RegisterInput>, res: Response): Promise<void> {
+    logger.info('Registering user...');
     try {
         const response = await this.authService.register(req.body);
         logger.info('User registered successfully');
