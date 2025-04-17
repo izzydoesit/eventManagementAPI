@@ -1,120 +1,226 @@
-import { Request, Response } from 'express';
 import { AuthController } from '../../controllers/auth.controller';
-import { AuthService } from '../../services/auth.service';
-import { AuthResponse, LoginCredentials, RegisterData } from '../../types/auth.types';
-import mongoose from 'mongoose';
+import { Request, Response } from 'express';
+import { registerSchema, loginSchema } from '../../schemas/auth.schema';
+import { User } from '../../models/user.model';
+import bcrypt from 'bcrypt';
+import jwt from 'jsonwebtoken';
 
-// Mock the entire module
-jest.mock('../../services/auth.service');
+jest.mock('../../models/user.model');
+jest.mock('bcrypt');
+jest.mock('jsonwebtoken');
 
 describe('AuthController', () => {
     let authController: AuthController;
-    let mockAuthService: jest.Mocked<AuthService>;
-    let mockRequest: Partial<Request>;
-    let mockResponse: Partial<Response>;
-
-    const mockAuthResponse: AuthResponse = {
-        user: {
-            id: new mongoose.Types.ObjectId().toString(),
-            name: 'Test User',
-            email: 'test@example.com',
-        },
-        tokens: {
-            accessToken: 'mock-access-token',
-            refreshToken: 'mock-refresh-token',
-        },
-    };
+    let req: Partial<Request>;
+    let res: Partial<Response>;
+    let next: jest.Mock;
 
     beforeEach(() => {
-        mockAuthService = {
-            register: jest.fn(),
-            login: jest.fn(),
-        } as unknown as jest.Mocked<AuthService>;
-
-        authController = new AuthController(mockAuthService);
-        
-        mockResponse = {
+        jest.clearAllMocks();
+        authController = new AuthController();
+        req = {};
+        res = {
             status: jest.fn().mockReturnThis(),
             json: jest.fn(),
+            cookie: jest.fn()
         };
+        next = jest.fn();
     });
 
     describe('register', () => {
-        const registerData: RegisterData = {
-            name: 'Test User',
-            email: 'test@example.com',
-            password: 'password123',
-        };
-
-        beforeEach(() => {
-            mockRequest = {
-                body: registerData,
+        it('should register a new user', async () => {
+            const mockUserData = {
+                name: 'Test User',
+                email: 'test@example.com',
+                password: 'password123'
             };
+            req.body = mockUserData;
+            (bcrypt.hash as jest.Mock).mockResolvedValue('hashedPassword');
+            (User.create as jest.Mock).mockResolvedValue({ ...mockUserData, password: 'hashedPassword' });
+
+            await authController.register(req as Request, res as Response);
+
+            expect(User.create).toHaveBeenCalledWith({
+                ...mockUserData,
+                password: 'hashedPassword'
+            });
+            expect(res.status).toHaveBeenCalledWith(201);
+            expect(res.json).toHaveBeenCalledWith({ message: 'User registered successfully' });
         });
 
-        it('should successfully register a new user', async () => {
-            mockAuthService.register.mockResolvedValue(mockAuthResponse);
+        it('should handle errors during registration', async () => {
+            const mockUserData = {
+                name: 'Test User',
+                email: 'test@example.com',
+                password: 'password123'
+            };
+            req.body = mockUserData;
+            (bcrypt.hash as jest.Mock).mockResolvedValue('hashedPassword');
+            (User.create as jest.Mock).mockRejectedValue(new Error('Registration failed'));
 
-            await authController.register(
-                mockRequest as Request<{}, {}, RegisterData>,
-                mockResponse as Response,
-            );
+            await authController.register(req as Request, res as Response);
 
-            expect(mockAuthService.register).toHaveBeenCalledWith(registerData);
-            expect(mockResponse.status).toHaveBeenCalledWith(201);
-            expect(mockResponse.json).toHaveBeenCalledWith(mockAuthResponse);
+            expect(User.create).toHaveBeenCalledWith({
+                ...mockUserData,
+                password: 'hashedPassword'
+            });
+            expect(res.status).toHaveBeenCalledWith(400);
+            expect(res.json).toHaveBeenCalledWith({ error: 'Registration failed' });
         });
 
-        it('should handle registration error when email exists', async () => {
-            const errorMessage = 'Email already registered';
-            mockAuthService.register.mockRejectedValue(new Error(errorMessage));
+        it('should validate registration schema', async () => {
+            const mockUserData = {
+                name: 'Test User',
+                email: 'invalid-email',
+                password: 'password123'
+            };
+            req.body = mockUserData;
 
-            await authController.register(
-                mockRequest as Request<{}, {}, RegisterData>,
-                mockResponse as Response,
-            );
+            await authController.register(req as Request, res as Response);
 
-            expect(mockResponse.status).toHaveBeenCalledWith(400);
-            expect(mockResponse.json).toHaveBeenCalledWith({ error: errorMessage });
+            expect(next).toHaveBeenCalled();
         });
     });
 
     describe('login', () => {
-        const loginCredentials: LoginCredentials = {
+        it('should log in an existing user', async () => {
+            const mockUserData = {
             email: 'test@example.com',
-            password: 'password123',
-        };
-
-        beforeEach(() => {
-            mockRequest = {
-                body: loginCredentials,
+            password: 'password123'
             };
+            req.body = mockUserData;
+            const mockUser = {
+            _id: 'userId',
+            name: 'Test User',
+            email: mockUserData.email,
+            password: 'hashedPassword'
+            };
+            (User.findOne as jest.Mock).mockResolvedValue(mockUser);
+            (bcrypt.compare as jest.Mock).mockResolvedValue(true);
+            (jwt.sign as jest.Mock).mockReturnValue('mockToken');
+
+            await authController.login(req as Request, res as Response, next);
+
+            expect(User.findOne).toHaveBeenCalledWith({ email: mockUserData.email });
+            expect(bcrypt.compare).toHaveBeenCalledWith(mockUserData.password, 'hashedPassword');
+            expect(jwt.sign).toHaveBeenCalled();
+            expect(res.cookie).toHaveBeenCalledWith('token', 'mockToken', expect.any(Object));
+            expect(res.status).toHaveBeenCalledWith(200);
+            expect(res.json).toHaveBeenCalledWith({ message: 'Logged in successfully' });
         });
 
-        it('should successfully log in a user', async () => {
-            mockAuthService.login.mockResolvedValue(mockAuthResponse);
+        it('should handle incorrect email', async () => {
+            const mockUserData = {
+            email: 'test@example.com',
+            password: 'password123'
+            };
+            req.body = mockUserData;
+            (User.findOne as jest.Mock).mockResolvedValue(null);
 
-            await authController.login(
-                mockRequest as Request<{}, {}, LoginCredentials>,
-                mockResponse as Response,
-            );
+            await authController.login(req as Request, res as Response);
 
-            expect(mockAuthService.login).toHaveBeenCalledWith(loginCredentials);
-            expect(mockResponse.status).toHaveBeenCalledWith(200);
-            expect(mockResponse.json).toHaveBeenCalledWith(mockAuthResponse);
+            expect(User.findOne).toHaveBeenCalledWith({ email: mockUserData.email });
+            expect(res.status).toHaveBeenCalledWith(401);
+            expect(res.json).toHaveBeenCalledWith({ error: 'Invalid email' });
         });
 
-        it('should handle invalid credentials', async () => {
-            const errorMessage = 'Invalid email';
-            mockAuthService.login.mockRejectedValue(new Error(errorMessage));
+        it('should handle incorrect password', async () => {
+            const mockUserData = {
+                email: 'test@example.com',
+                password: 'password123'
+            };
+            req.body = mockUserData;
+            const mockUser = {
+                _id: 'userId',
+                name: 'Test User',
+                email: mockUserData.email,
+                password: 'hashedPassword'
+            };
+            (User.findOne as jest.Mock).mockResolvedValue(mockUser);
+            (bcrypt.compare as jest.Mock).mockResolvedValue(false);
 
-            await authController.login(
-                mockRequest as Request<{}, {}, LoginCredentials>,
-                mockResponse as Response,
-            );
+            await authController.login(req as Request, res as Response);
 
-            expect(mockResponse.status).toHaveBeenCalledWith(401);
-            expect(mockResponse.json).toHaveBeenCalledWith({ error: errorMessage });
+            expect(User.findOne).toHaveBeenCalledWith({ email: mockUserData.email });
+            expect(bcrypt.compare).toHaveBeenCalledWith(mockUserData.password, 'hashedPassword');
+            expect(res.status).toHaveBeenCalledWith(401);
+            expect(res.json).toHaveBeenCalledWith({ error: 'Invalid credentials' });
+        });
+
+        it('should handle errors during login', async () => {
+            const mockUserData = {
+            email: 'test@example.com',
+            password: 'password123'
+            };
+            req.body = mockUserData;
+            (User.findOne as jest.Mock).mockRejectedValue(new Error('Login failed'));
+
+            await authController.login(req as Request, res as Response);
+
+            expect(User.findOne).toHaveBeenCalledWith({ email: mockUserData.email });
+            expect(res.status).toHaveBeenCalledWith(500);
+            expect(res.json).toHaveBeenCalledWith({ error: 'Login failed' });
+        });
+
+        it('should validate login schema', async () => {
+            const mockUserData = {
+            email: 'invalid-email',
+            password: 'password123'
+            };
+            req.body = mockUserData;
+
+            await authController.login(req as Request, res as Response);
+
+            expect(next).toHaveBeenCalled();
         });
     });
+
+    describe('logout', () => {
+        it('should log out a user', async () => {
+            await authController.logout(req as Request, res as Response);
+
+            expect(res.cookie).toHaveBeenCalledWith('token', '', {
+                httpOnly: true,
+                expires: new Date(0),
+                secure: true,
+                sameSite: 'none'
+            });
+            expect(res.status).toHaveBeenCalledWith(200);
+            expect(res.json).toHaveBeenCalledWith({ message: 'Logged out successfully' });
+        });
+    });
+
+    describe('RSVP', () => {
+        it('should register a new user', async () => {
+            const mockUserData = {
+                name: 'Test User',
+                email: 'test@example.com',
+                password: 'password123'
+            };
+            req.body = mockUserData;
+            (User.create as jest.Mock).mockResolvedValue(mockUserData);
+
+            await authController.register(req as Request, res as Response);
+
+            expect(User.create).toHaveBeenCalledWith(mockUserData);
+            expect(res.status).toHaveBeenCalledWith(201);
+            expect(res.json).toHaveBeenCalledWith({ message: 'User registered successfully' });
+        });
+
+        it('should handle errors during registration', async () => {
+            const mockUserData = {
+                name: 'Test User',
+                email: 'test@example.com',
+                password: 'password123'
+            };
+            req.body = mockUserData;
+            (User.create as jest.Mock).mockRejectedValue(new Error('Registration failed'));
+
+            await authController.register(req as Request, res as Response);
+
+            expect(User.create).toHaveBeenCalledWith(mockUserData);
+            expect(res.status).toHaveBeenCalledWith(500);
+            expect(res.json).toHaveBeenCalledWith({ error: 'Registration failed' });
+        });
+    })
 });
