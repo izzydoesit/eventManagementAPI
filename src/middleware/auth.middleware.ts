@@ -1,5 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
-import { verifyToken } from '../utils/jwt';
+import * as jwtUtils from '../utils/jwt';
+import logger from '../utils/logger';
 
 declare global {
     namespace Express {
@@ -17,21 +18,31 @@ export const authenticate = async (
     next: NextFunction
 ) => {
     try {
+        logger.info('Authenticating user...');
         const authHeader = req.headers.authorization;
+        let token = req.cookies?.token;
         
-        if (!authHeader?.startsWith('Bearer ')) {
-            return res.status(401).json({ error: 'No token provided' });
+        if (!token && authHeader?.startsWith('Bearer ')) {
+            logger.info('Extracting token from Authorization header');
+            token = authHeader.split(' ')[1];
         }
 
-        const token = authHeader.split(' ')[1];
-        const decoded = verifyToken(token);
+        if (!token) {
+            logger.warn('Authentication failed: No token provided');
+            return res.status(401).json({ error: 'Unauthorized: No token provided' });
+        } 
+
+        logger.info('Verifying token...');
+        const decoded = jwtUtils.verifyToken(token);
         
         req.user = {
             id: decoded.userId
         };
-        
+        logger.info('Token verified successfully, user authenticated:', req.user);
+
         next();
     } catch (error) {
-        res.status(401).json({ error: 'Invalid token' });
+        logger.error('Authentication error:', error);
+        return res.status(401).json({ error: 'Unauthorized: No token provided' });
     }
 };

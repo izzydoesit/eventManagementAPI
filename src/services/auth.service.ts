@@ -1,10 +1,12 @@
 import { User, IUser } from '../models/user.model';
 import { AuthResponse, LoginCredentials, RegisterData } from '../types/auth.types';
 import { generateTokens } from '../utils/jwt';
-import { hashPassword, comparePasswords } from '../utils/password';
+import { hashPassword } from '../utils/password';
+import logger from '../utils/logger';
 
 export class AuthService {
     async register(data: RegisterData): Promise<AuthResponse> {
+        logger.info('Registering user...');
         const existingUser: IUser | null = await User.findOne({ 
             email: data.email,
         });
