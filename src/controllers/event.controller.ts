@@ -113,13 +113,14 @@ export class EventController {
         }
     }
 
-    async getEventAttendees(req: Request, res: Response) {
+    async getEventAttendees(req: Request, res: Response): Promise<void> {
         logger.info(`Getting event attendees: ${req.params.id}`);
         try {
             const attendees = await this.eventService.getEventAttendees(req.params.id);
+
             if (!attendees) {
                 logger.warn(`No attendees found for event: ${req.params.id}`);
-                return res.status(404).json({ error: 'No attendees found' });
+                res.status(404).json({ error: 'No attendees found' });
             }
             logger.info(`Successfully retrieved attendees for event: ${req.params.id}`);
             res.status(200).json(attendees);
@@ -129,20 +130,23 @@ export class EventController {
         }
     }
 
-    async getEventsUserAttends(req: Request, res: Response) {
-        if (!req.user) {
-            logger.warn(`Unauthorized attempt to get user events`);
-            return res.status(401).json({ error: 'Unauthorized' });
-        }
+    async getEventsUserAttends(req: Request, res: Response): Promise<void> {
         logger.info(`Getting events user attends: ${req.user?.id}`);
         try {
-            const events = await this.eventService.createEvent(req.body, req.user.id);
-            if (!events) {
-                logger.warn(`No events found for user: ${req.user.id}`);
-                return res.status(404).json({ error: 'No events found' });
+            const userId = req.user?.id;
+            if (!userId) {
+                logger.warn(`Unauthorized attempt to get event attendees`);
+                res.status(401).json({ error: 'Unauthorized' });
+            } else {
+                logger.info(`User ID: ${userId}`);
+                const events = await this.eventService.getEventsUserAttends(userId);
+                if (!events) {
+                    logger.warn(`No events found for user: ${userId}`);
+                    res.status(404).json({ error: 'No events found' });
+                }
+                logger.info(`Successfully retrieved events for user: ${userId}`);
+                res.status(200).json(events);
             }
-            logger.info(`Successfully retrieved events for user: ${req.user.id}`);
-            res.status(200).json(events);
         } catch (error: any) {
             logger.error(`Error getting events user attends: ${error.message}`);
             res.status(500).json({ error: error.message });

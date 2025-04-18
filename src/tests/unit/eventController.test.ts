@@ -41,7 +41,7 @@ describe('EventController', () => {
             const mockEventData: CreateEventInput = {
                 title: 'Test Event',
                 description: 'Test Description',
-                date: new Date().toISOString(), // Convert date to string
+                date: new Date(),
                 location: 'Test Location',
                 category: 'workshop'
             };
@@ -191,7 +191,7 @@ describe('EventController', () => {
 
             await request(app)
                 .delete('/api/events/eventId')
-                .expect(400);
+                .expect(500);
 
             expect(logger.error).toHaveBeenCalled();
         });
@@ -208,7 +208,7 @@ describe('EventController', () => {
                 .send(mockRsvpData)
                 .expect(200);
 
-            expect(eventService.registerForEvent).toHaveBeenCalledWith('eventId', undefined, mockRsvpData);
+            expect(eventService.registerForEvent).toHaveBeenCalledWith('eventId', 'testUserId', mockRsvpData);
         });
 
         it('should handle errors when registering for an event', async () => {
@@ -257,7 +257,7 @@ describe('EventController', () => {
                 .expect(200);
 
             expect(response.body).toEqual(mockEvents);
-            expect(eventService.getEventsUserAttends).toHaveBeenCalledWith(undefined);
+            expect(eventService.getEventsUserAttends).toHaveBeenCalledWith('testUserId');
         });
 
         it('should handle errors when getting events a user is attending', async () => {
