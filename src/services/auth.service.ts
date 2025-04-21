@@ -20,11 +20,11 @@ export class AuthService {
             password: hashedPassword,
         });
 
-        const tokens = generateTokens(user.id.toString());
+        const tokens = generateTokens(user.id);
 
         return {
             user: {
-                id: user.id.toString(),
+                id: user.id,
                 name: user.name,
                 email: user.email,
             },
@@ -33,9 +33,11 @@ export class AuthService {
     }
 
     async login(credentials: LoginCredentials): Promise<AuthResponse> {
+        logger.info('Logging in user...', credentials.email);
         const user: IUser | null = await User.findOne({
             email: credentials.email,
         });
+        logger.info('Logging in user...', user?.email);
         if (!user) {
             throw new Error('Invalid email');
         }
