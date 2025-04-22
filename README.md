@@ -52,10 +52,12 @@ The seed script creates:
 5 users (including an admin user)
 6 events of different categories
 8 RSVPs with different statuses
+
 Admin user credentials:
 
 Email: admin@example.com
 Password: admin123
+
 Regular user credentials:
 
 Email: john@example.com, jane@example.com, etc.
@@ -108,7 +110,10 @@ json
     "name": "John Doe",
     "email": "john@example.com"
   },
-  "token": "jwt-token-string"
+  "tokens": {
+    "accessToken": "jwt-token-string",
+    "refreshToken": "refresh-token-string"
+  }
 }
 ```
 
@@ -269,7 +274,7 @@ Headers:
 ```http
 Authorization: Bearer jwt-token-string
 ```
-Response (204 No Content): // TODO: note CONFIRM
+Response (204 No Content):
 ```json
 {
   "message": "Event deleted successfully"
@@ -475,7 +480,10 @@ Response (200 OK):
     "name": "John Doe",
     "email": "john@example.com"
   },
-  "token": "jwt-token-string"
+  "tokens": {
+    "accessToken": "jwt-token-string",
+    "refreshToken": "refresh-token-string"
+  }
 }
 ```
 
