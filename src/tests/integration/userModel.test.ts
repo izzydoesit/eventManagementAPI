@@ -1,7 +1,6 @@
 import { User } from '../../models/user.model';
 import { comparePasswords } from '../../utils/password';
 
-jest.mock('mongoose')
 jest.mock('../../utils/password');
 
 describe('User Model', () => {
