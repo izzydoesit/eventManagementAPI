@@ -23,7 +23,6 @@ describe('Auth Routes', () => {
             login: jest.fn().mockImplementation((_req, res) => res.status(200).json({})),
             logout: jest.fn().mockImplementation((_req, res) => res.status(200).json({}))
         } as unknown as jest.Mocked<AuthController>;
-        // (validate as jest.Mock).mockImplementation(() => (req: any, res: any, next: any) => next());
 
         // Mock the constructor to return our mock controller
         (AuthController as jest.Mock).mockImplementation(() => mockAuthController);

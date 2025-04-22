@@ -1,28 +1,21 @@
 
 import { Request, Response, NextFunction } from 'express';
-// import { registerSchema, loginSchema } from '../../schemas/auth.schema';
 import { User } from '../../models/user.model';
 import bcrypt from 'bcrypt';
-// import jwt from 'jsonwebtoken';
-import { AuthService } from '../../services/auth.service';
 import { AuthController } from '../../controllers/auth.controller';
 
 jest.mock('../../models/user.model');
 jest.mock('bcrypt');
-// jest.mock('jsonwebtoken');
-// jest.mock('../../services/auth.service');
+
 
 describe('AuthController', () => {
     let authController: AuthController;
-    // let authService: AuthService;
     let req: Partial<Request>;
     let res: Partial<Response>;
     let next: NextFunction;
 
     beforeEach(() => {
         jest.clearAllMocks();
-        // authService = new AuthService();
-        // (authController as any).authService = authService;
         req = { body: {} };
         res = {
             status: jest.fn().mockReturnThis(),
