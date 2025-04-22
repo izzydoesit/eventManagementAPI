@@ -8,6 +8,7 @@ export class EventService {
     async createEvent(data: CreateEventInput, organizerId: IUser['_id']): Promise<IEvent> {
         const event = await Event.create({
             ...data,
+            date: new Date(data.date),
             organizer: organizerId,
             status: 'draft'
         });

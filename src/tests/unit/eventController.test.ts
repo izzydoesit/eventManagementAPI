@@ -41,7 +41,7 @@ describe('EventController', () => {
             const mockEventData: CreateEventInput = {
                 title: 'Test Event',
                 description: 'Test Description',
-                date: new Date(),
+                date: new Date().toISOString(),
                 location: 'Test Location',
                 category: 'workshop'
             };
