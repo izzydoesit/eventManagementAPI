@@ -2,11 +2,23 @@ import { AuthService } from '../../services/auth.service';
 import { User } from '../../models/user.model';
 import { hashPassword } from '../../utils/password';
 import { generateTokens } from '../../utils/jwt';
+import { comparePasswords } from '../../utils/password';
 import mongoose from 'mongoose';
 
 jest.mock('../../models/user.model');
 jest.mock('../../utils/password');
 jest.mock('../../utils/jwt');
+jest.mock('bcrypt');
+jest.mock('jsonwebtoken');
+jest.mock('../../utils/password', () => ({
+    ...jest.requireActual('../../utils/password'),
+    hashPassword: jest.fn(),
+    comparePasswords: jest.fn()
+}));
+jest.mock('../../utils/jwt', () => ({
+    ...jest.requireActual('../../utils/jwt'),
+    generateTokens: jest.fn()
+}));
 
 describe('AuthService', () => {
     let authService: AuthService;
@@ -74,6 +86,7 @@ describe('AuthService', () => {
                 id: mockUserId.toString(),
                 email: loginData.email,
                 name: 'Test User',
+                password: 'hashedPassword',
                 comparePassword: jest.fn().mockResolvedValue(true)
             };
             const mockTokens = {
@@ -82,9 +95,15 @@ describe('AuthService', () => {
             };
 
             (User.findOne as jest.Mock).mockResolvedValue(mockUser);
+            (comparePasswords as jest.Mock).mockResolvedValue(true);
             (generateTokens as jest.Mock).mockReturnValue(mockTokens);
 
             const result = await authService.login(loginData);
+
+            expect(User.findOne).toHaveBeenCalledWith({ email: loginData.email });
+            expect(mockUser.comparePassword).toHaveBeenCalledWith(loginData.password);
+            expect(generateTokens).toHaveBeenCalledWith(mockUserId.toString());
+            
 
             expect(result).toEqual({
                 user: {
