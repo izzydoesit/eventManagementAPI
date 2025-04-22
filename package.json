@@ -6,7 +6,11 @@
     "start": "node dist/app.ts",
     "dev": "nodemon --exec ts-node src/app.ts",
     "build": "tsc",
-    "test": "jest",
+    "test": "jest --config jest.unit.config.ts && jest --config jest.integration.config.ts",
+    "test:unit": "jest --config jest.unit.config.ts",
+    "test:integration": "jest --config jest.integration.config.ts",
+    "test:unit:watch": "jest --config jest.unit.config.ts --watch",
+    "test:integration:watch": "jest --config jest.integration.config.ts --watch",
     "test:watch": "jest --watch",
     "test:coverage": "jest --coverage",
     "seed": "ts-node src/utils/seed.ts"
