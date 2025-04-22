@@ -1,54 +1,60 @@
 import { Request, Response } from 'express';
-import jwt from 'jsonwebtoken';
-import { User, IUserDocument } from '../models/user.model';
-import { RegisterUserInput } from '../schemas/user.schema';
+import { AuthService } from '../services/auth.service';
+import { LoginInput, RegisterInput } from '../schemas/auth.schema';
+import logger from '../utils/logger';
 
-// Generate JWT token
-const generateToken = (user: IUserDocument): string => {
-  return jwt.sign({ id: user._id }, process.env.JWT_SECRET as string, {
-    expiresIn: process.env.JWT_EXPIRES_IN || '1d',
-  } as jwt.SignOptions);
-};
 
-// Format user response without sensitive data
-const formatUserResponse = (user: IUserDocument) => {
-  return {
-    id: user._id,
-    name: user.name,
-    email: user.email,
-    createdAt: user.createdAt,
-    updatedAt: user.updatedAt,
-  };
-};
+export class AuthController {
+  private authService: AuthService;
 
-// Register a new user
-export const register = async (req: Request<{}, {}, RegisterUserInput>, res: Response) => {
-  try {
-    const { name, email, password } = req.body;
-
-    // Check if user already exists
-    const existingUser = await User.findOne({ email });
-    if (existingUser) {
-      return res.status(409).json({ message: 'User with this email already exists' });
-    }
-
-    // Create new user
-    const user = await User.create({
-      name,
-      email,
-      password,
-    });
-
-    // Generate token
-    const token = generateToken(user);
-
-    // Return user and token
-    return res.status(201).json({
-      message: 'User registered successfully',
-      user: formatUserResponse(user),
-      token,
-    });
-  } catch (error: any) {
-    return res.status(500).json({ message: error.message || 'An error occurred during registration' });
+  constructor(authService?: AuthService) {
+    this.authService = authService || new AuthService();
   }
-};
+
+  async register(req: Request<{}, {}, RegisterInput>, res: Response): Promise<void> {
+    logger.info('Registering user...');
+    try {
+
+        const response = await this.authService.register(req.body);
+        logger.info('User registered successfully');
+        res.status(201).json({ message: 'User registered successfully', user: response.user });
+    } catch (error: any) {
+        logger.error(`Error registering user: ${error.message}`);
+        res.status(400).json({ error: error.message });
+    }
+  }
+
+  async login(req: Request<{}, {}, LoginInput>, res: Response) {
+    logger.info('Logging in user');
+    try {
+      const response = await this.authService.login(req.body);
+      logger.info('User logged in successfully', response.user.email);
+      res.status(200).json(response);
+    } catch (error: any) {
+      logger.error(`Error logging in user: ${error.message}`);
+      res.status(401).json({
+        error: error.message || 'Invalid credentials',
+      });
+    }
+  }
+
+  async logout(req: Request, res: Response) {
+    logger.info('Logging out user');
+    try {
+      res.cookie('token', '', {
+        httpOnly: true,
+        expires: new Date(0),
+        secure: true,
+        sameSite: 'none'
+      });
+      res.status(200).json({
+        message: 'Logged out successfully',
+      });
+    } catch (error: any) {
+      logger.error(`Error logging out user: ${error.message}`);
+      res.status(500).json({
+        error: error.message || 'An error occurred during logout',
+      });
+    }
+  }
+}

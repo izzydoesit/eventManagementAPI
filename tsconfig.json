@@ -19,8 +19,9 @@
       "baseUrl": ".",
       "paths": {
         "@/*": ["./src/*"]
-      }
+      },
+      "isolatedModules": true,
     },
-    "include": ["src/**/*"],
-    "exclude": ["node_modules", "dist", "**/*.test.ts", "tests"]
+    "include": ["src/**/*", "jest-mongodb-config.js"],
+    "exclude": ["node_modules", "dist", "**/*.test.ts", "src/tests"]
   }
