@@ -3,6 +3,7 @@ import { AuthService } from '../services/auth.service';
 import { LoginInput, RegisterInput } from '../schemas/auth.schema';
 import logger from '../utils/logger';
 
+
 export class AuthController {
   private authService: AuthService;
 
@@ -13,9 +14,10 @@ export class AuthController {
   async register(req: Request<{}, {}, RegisterInput>, res: Response): Promise<void> {
     logger.info('Registering user...');
     try {
+
         const response = await this.authService.register(req.body);
         logger.info('User registered successfully');
-        res.status(201).json(response);
+        res.status(201).json({ message: 'User registered successfully', user: response.user });
     } catch (error: any) {
         logger.error(`Error registering user: ${error.message}`);
         res.status(400).json({ error: error.message });
@@ -26,7 +28,7 @@ export class AuthController {
     logger.info('Logging in user');
     try {
       const response = await this.authService.login(req.body);
-      logger.info('User logged in successfully');
+      logger.info('User logged in successfully', response.user.email);
       res.status(200).json(response);
     } catch (error: any) {
       logger.error(`Error logging in user: ${error.message}`);
@@ -39,6 +41,12 @@ export class AuthController {
   async logout(req: Request, res: Response) {
     logger.info('Logging out user');
     try {
+      res.cookie('token', '', {
+        httpOnly: true,
+        expires: new Date(0),
+        secure: true,
+        sameSite: 'none'
+      });
       res.status(200).json({
         message: 'Logged out successfully',
       });
