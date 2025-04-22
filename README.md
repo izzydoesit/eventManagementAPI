@@ -86,10 +86,6 @@ Response (201 Created):
 {
   "message": "User registered successfully"
 }
-```json
-{
-  "message": "User registered successfully"
-}
 ```
 Login a user:
 ```http
