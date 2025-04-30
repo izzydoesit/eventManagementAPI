@@ -2,7 +2,7 @@ import e, { Request, Response, NextFunction } from 'express';
 import { EventService } from '../services/event.service';
 import { CreateEventInput, UpdateEventInput } from '../schemas/event.schema';
 import { CreateRsvpInput } from '../schemas/rsvp.schema';
-import { ApiError } from '../utils/apiError';
+import ApiError from '../utils/apiError';
 import logger from '../utils/logger';
 
 

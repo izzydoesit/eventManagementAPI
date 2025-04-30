@@ -2,7 +2,7 @@ import { NextFunction, Request, Response } from 'express';
 import { AuthService } from '../services/auth.service';
 import { LoginInput, RegisterInput } from '../schemas/auth.schema';
 import logger from '../utils/logger';
-import { ApiError } from '@/utils/apiError';
+import ApiError from '@/utils/apiError';
 
 
 export class AuthController {
