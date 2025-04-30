@@ -11,8 +11,11 @@ export const createEventSchema = z.object({
         return date;
     }),
     location: z.string().min(1),
+    organizer: z.string().uuid(),
+    attendees: z.array(z.string().uuid()).optional(),
     maxAttendees: z.number().min(1).optional(),
-    category: z.enum(['conference', 'workshop', 'social', 'other'])
+    category: z.enum(['conference', 'workshop', 'social', 'other']),
+    status: z.enum(['draft', 'published', 'cancelled']).default('draft')
 });
 
 export const updateEventSchema = createEventSchema.partial();
