@@ -10,11 +10,15 @@ beforeAll(async () => {
 });
 
 afterEach(async () => {
-    const collections = await mongoose.connection.db.collections();
-    for (const collection of collections) {
-        await collection.deleteMany({});
+    if (mongoose.connection.db) {
+        const collections = await mongoose.connection.db.collections();
+        for (const collection of collections) {
+            await collection.deleteMany({});
+        }
+        console.log('Test database collections cleared');
+    } else {
+        
     }
-    console.log('Test database collections cleared');
 });
 
 afterAll(async () => {
