@@ -12,11 +12,32 @@ export class AuthController {
     this.authService = authService || new AuthService();
   }
 
+  /** 
+  * @swagger 
+  * /api/v1/auth/register:  
+  *   post:
+  *     tags:
+  *       - Auth
+  *      summary: Register a new user
+  *     description: Register a new user with email and password
+  *     requestBody:
+  *      required: true
+  *     content:
+  *       application/json:
+  *        schema:
+  *         type: object
+  *        properties:
+  *         email:
+  *         type: string
+  *        example:
+  *         email:
+  * 
+  */
   async register(req: Request<{}, {}, RegisterInput>, res: Response, next: NextFunction): Promise<void> {
     logger.info('Registering user...');
     try {
         const response = await this.authService.register(req.body);
-        if (!response) {
+        if (!res) {
           logger.error('User registration failed!');
           throw new ApiError('Error registering user', 400);
         }
@@ -32,6 +53,77 @@ export class AuthController {
     }
   }
 
+  /*
+  @swagger
+  * /api/v1/auth/login:
+  *   post:
+  *    tags:
+  *     - Auth
+  *   summary: Login a user
+  *   description: Login a user with email and password
+  *  requestBody:
+  *   required: true
+  *  content:
+  *   application/json:
+  *    schema:
+  *     type: object
+  *    properties:
+  *    email:
+  *    type: string
+  *   example:
+  *    email:
+  *   type: string
+  *   password:
+  *  type: string
+  *  example:
+  *   password:
+  *  type: string
+  *  responses:
+  *   200:
+  *    description: User logged in successfully
+  *   content:
+  *    application/json:
+  *   schema:
+  *   type: object
+  *  properties:
+  *   success:
+  *  type: boolean
+  *  example:
+  *   success:
+  *  type: boolean
+  *  message:
+  *  type: string
+  * example:
+  *  message:
+  * type: string
+  *  user:
+  * type: object
+  * properties:
+  *  id:
+  * type: string
+  * example:
+  * id:
+  * type: string
+  * email:
+  * type: string
+  * example:
+  * email:
+  * type: string
+  * accessTokens:
+  * type: object
+  * properties:
+  * accessToken:
+  * type: string
+  * example:
+  * accessToken:
+  * type: string
+  * refreshToken:
+  * type: string
+  * example:
+  * refreshToken:
+  * type: string
+  * 
+  */
   async login(req: Request<{}, {}, LoginInput>, res: Response, next: NextFunction): Promise<void> {
     logger.info('Logging in user');
     try {
@@ -47,6 +139,28 @@ export class AuthController {
     }
   }
 
+  /**
+   * @swagger
+   * /api/v1/auth/logout:
+   *   post:
+   *  tags:
+   *   - Auth
+   *  summary: Logout a user
+   *  description: Logout a user and clear the session
+   * responses:
+   *  200:
+   *   description: User logged out successfully
+   *  content:
+   *  application/json:
+   *  schema:
+   *  type: object
+   * properties:
+   *  message:
+   * type: string
+   * example:
+   * message:
+   * type: string
+   * */
   async logout(req: Request, res: Response, next: NextFunction): Promise<void> {
     logger.info('Logging out user');
     try {
