@@ -5,6 +5,12 @@ import helmet from 'helmet';
 import authRoutes from './routes/auth.routes';
 import eventRoutes from './routes/event.routes';
 import { env } from './config/env';
+import { corsOptions } from './middleware/corsConfig';
+import { apiLimiter } from './middleware/rateLimiter.middleware';
+import { errorHandler } from './middleware/errorHandler.middleware';
+import swaggerUi from 'swagger-ui-express';
+import { swaggerSpec } from './docs/swagger';
+
 
 const app = express();
 
@@ -38,32 +44,24 @@ connectDB();
 // Middleware
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-app.use(cors({
-  origin: env.CORS_ORIGIN
-}));
-app.use(helmet());
+app.use(cors(corsOptions)); // CORS middleware
+app.use(helmet()); // HTTP headers security middleware
+app.use(apiLimiter); // Rate limiting middleware
+
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec)); // Swagger UI
+
 
 app.use('/api/auth', authRoutes);
 app.use('/api/event', eventRoutes);
 
-
-app.use((err: Error & { statusCode?: number }, req: express.Request, res: express.Response, next: express.NextFunction) => {
-  console.error(err.stack);
-  
-  const statusCode = err.statusCode || 500;
-  const message = err.message || 'Something went wrong';
-  
-  return res.status(statusCode).json({
-    status: 'error',
-    statusCode,
-    message,
-  });
-});
+// error handler middleware
+app.use(errorHandler);
 
 // 404 handler
 app.use((req: express.Request, res: express.Response) => {
   return res.status(404).json({ message: 'Route not found' });
 });
+
 
 
 const server = app.listen(env.PORT, () => {

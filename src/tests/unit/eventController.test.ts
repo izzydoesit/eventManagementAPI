@@ -77,6 +77,7 @@ describe('EventController', () => {
                 .expect(200);
 
             expect(response.body.events).toEqual(mockEvents);
+            expect(response.body).toBeInstanceOf(Array);
             expect(eventService.getEvents).toHaveBeenCalled();
         });
 

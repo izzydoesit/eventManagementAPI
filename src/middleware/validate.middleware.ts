@@ -1,25 +1,21 @@
 import { Request, Response, NextFunction } from 'express';
 import { ZodObject, ZodError } from 'zod';
+import ApiError from '../utils/apiError';
 
-export const validate = (schema: ZodObject<any>) => 
+export const validate = (schema: ZodObject<any>, property: 'body' | 'query' | 'params' = 'body') => 
     async (req: Request, res: Response, next: NextFunction) => {
         try {
-            await schema.parseAsync({
-                body: req.body,
-                query: req.query,
-                params: req.params,
-            });
+            const result = await schema.parseAsync(req[property]);
+            if (!result.success) {
+                if (result.error instanceof ZodError) {
+                    return next(new ApiError('Validation Error', 400));
+                }
+                return next(new ApiError(`Validation Error: ${result.error.errors}`, 400));
+            }
+
+            req[property] = result.data; // This is the sanitized and typed input
             next();
         } catch (error: any) {
-            if (error instanceof ZodError) {
-                return res.status(400).json({
-                    message: 'Validation error',
-                    errors: error.errors,
-                });
-            }
-            return res.status(500).json({
-                message: 'Internal server error',
-                error: error.message,
-            });
+            next(error);
         }
     };
