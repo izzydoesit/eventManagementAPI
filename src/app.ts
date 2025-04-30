@@ -8,6 +8,8 @@ import { env } from './config/env';
 import { corsOptions } from './middleware/corsConfig';
 import { apiLimiter } from './middleware/rateLimiter.middleware';
 import { errorHandler } from './middleware/errorHandler.middleware';
+import swaggerUi from 'swagger-ui-express';
+import { swaggerSpec } from './docs/swagger';
 
 
 const app = express();
@@ -45,6 +47,9 @@ app.use(express.urlencoded({ extended: true }));
 app.use(cors(corsOptions)); // CORS middleware
 app.use(helmet()); // HTTP headers security middleware
 app.use(apiLimiter); // Rate limiting middleware
+
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec)); // Swagger UI
+
 
 app.use('/api/auth', authRoutes);
 app.use('/api/event', eventRoutes);
