@@ -5,8 +5,9 @@ import helmet from 'helmet';
 import authRoutes from './routes/auth.routes';
 import eventRoutes from './routes/event.routes';
 import { env } from './config/env';
-import { errorHandler } from './middleware/errorHandler.middleware';
+import { corsOptions } from './middleware/corsConfig';
 import { apiLimiter } from './middleware/rateLimiter.middleware';
+import { errorHandler } from './middleware/errorHandler.middleware';
 
 
 const app = express();
@@ -41,10 +42,8 @@ connectDB();
 // Middleware
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-app.use(cors({
-  origin: env.CORS_ORIGIN
-}));
-app.use(helmet());
+app.use(cors(corsOptions)); // CORS middleware
+app.use(helmet()); // HTTP headers security middleware
 app.use(apiLimiter); // Rate limiting middleware
 
 app.use('/api/auth', authRoutes);
