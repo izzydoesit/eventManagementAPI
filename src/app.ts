@@ -6,6 +6,7 @@ import authRoutes from './routes/auth.routes';
 import eventRoutes from './routes/event.routes';
 import { env } from './config/env';
 import { errorHandler } from './middleware/errorHandler.middleware';
+import { apiLimiter } from './middleware/rateLimiter.middleware';
 
 
 const app = express();
@@ -44,6 +45,7 @@ app.use(cors({
   origin: env.CORS_ORIGIN
 }));
 app.use(helmet());
+app.use(apiLimiter); // Rate limiting middleware
 
 app.use('/api/auth', authRoutes);
 app.use('/api/event', eventRoutes);
@@ -55,6 +57,7 @@ app.use(errorHandler);
 app.use((req: express.Request, res: express.Response) => {
   return res.status(404).json({ message: 'Route not found' });
 });
+
 
 
 const server = app.listen(env.PORT, () => {
