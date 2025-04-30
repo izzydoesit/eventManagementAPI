@@ -360,7 +360,7 @@ Response (200 OK):
 
 ## Future Improvements
 - **Error handling**: currently some routes lack comprehensive error handling, implement centralized error handling _middleware_ to manage errors consistently across the application
-- **Input validation**: currently input sanitization is limited, improve input validation using _Joi_ or _express-validator_
+- **Input validation**: currently input sanitization is limited, improve input validation using existing _Zod_ dependency
 - **Authentication & Authorization**: currently only basic authentication is implemented, add rate-limiting, use _helmet_ for setting HTTP headers, and input sanitization for bolstering security
 - **Logging**: prominently feature logging using _Winston_ for better monitoring and debugging
 - **API Documentation**: currently limited, use _Swagger_ or _Postman_ for comprehensive API documentation, facilitating easier onboarding and collaboration
