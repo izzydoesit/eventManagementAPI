@@ -361,11 +361,15 @@ Response (200 OK):
 ## Future Improvements
 - **Error handling**: currently some routes lack comprehensive error handling, implement centralized error handling _middleware_ to manage errors consistently across the application
 - **Input validation**: currently input sanitization is limited, improve input validation using existing _Zod_ dependency
-- **Authentication & Authorization**: currently only basic authentication is implemented, add rate-limiting, use _helmet_ for setting HTTP headers, and input sanitization for bolstering security
+  - TODO: add validation for query parameters and path parameters
+- **Authentication & Authorization**: currently only basic authentication is implemented and automatic setting of HTTP headers using _Helmet_, add CORS, rate-limiting and input sanitization for bolstering security
+  - TODO: add JWT Security Headers
 - **Logging**: prominently feature logging using _Winston_ for better monitoring and debugging
+  - TODO: add separate loggers for different concerns (e.g. services, controllers, etc.)
 - **API Documentation**: currently limited, use _Swagger_ or _Postman_ for comprehensive API documentation, facilitating easier onboarding and collaboration
 - **Environment management**: currently handled locally, use _dotenv_ for managing environment variables, ensuring sensitive information is not hard-coded
 - **Db schema**: currently no explicit schema is illustrated, use _dbdiagram.io_ or _MongoDB Compass_ for visualizing the database schema
+- **Scalability concerns**: improve API to handle increased loads and concurrent users w/ efficient database queries and caching strategies as well as modular code structure
 - **Plan breakdown into microservices**: currently all deployed as a monolith, consider breaking down into microservices for scalability and maintainability
 - **Extend integration tests**: currently limited to schema validation, extend integration tests to cover all endpoints and edge cases
 - **Plan cloud deployment (CI/CD)**: currently hosted locally, consider deploying to a cloud provider (e.g., _AWS_, _Azure_) for better scalability and availability and defining a CI/CD pipeline using _GitHub Actions_ or _CirleCI_
