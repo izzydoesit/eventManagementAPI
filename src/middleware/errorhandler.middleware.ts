@@ -5,4 +5,5 @@ export function errorHandler(err: any, req: Request, res: Response, next: NextFu
   res.status(statusCode).json({
     message: err.message || 'Internal Server Error',
   });
+  next();
 }
