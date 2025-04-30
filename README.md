@@ -362,7 +362,7 @@ Response (200 OK):
 - **Error handling**: currently some routes lack comprehensive error handling, implement centralized error handling _middleware_ to manage errors consistently across the application
 - **Input validation**: currently input sanitization is limited, improve input validation using existing _Zod_ dependency
   - TODO: add validation for query parameters and path parameters
-- **Authentication & Authorization**: currently only basic authentication is implemented and automatic setting of HTTP headers using _Helmet_, add CORS, rate-limiting and input sanitization for bolstering security
+- **Authentication & Authorization**: currently only basic authentication is implemented and automatic setting of HTTP headers using _Helmet_, add CORS, use HTTPS, implement rate-limiting and input sanitization for bolstering security
   - TODO: add JWT Security Headers
 - **Logging**: prominently feature logging using _Winston_ for better monitoring and debugging
   - TODO: add separate loggers for different concerns (e.g. services, controllers, etc.)
