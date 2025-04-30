@@ -8,7 +8,10 @@ const customFormat = printf(({ level, message, label, timestamp }) => {
 loggers.add('controllers', {
   format: combine(
     label({ label: 'CONTROLLERS' }),
-    json()
+    json(),
+    colorize({ all: true }), 
+    timestamp(), 
+    prettyPrint()
   ),
   transports: [
     new transports.Console({ level: 'info' }),
@@ -19,7 +22,10 @@ loggers.add('controllers', {
 loggers.add('services', {
   format: combine(
     label({ label: 'SERVICES' }),
-    json()
+    json(),
+    colorize({ all: true }), 
+    timestamp(), 
+    prettyPrint()
   ),
   transports: [
     new transports.Console({ level: 'info' }),
@@ -30,7 +36,10 @@ loggers.add('services', {
 loggers.add('routes', {
   format: combine(
     label({ label: 'ROUTES' }),
-    json()
+    json(),
+    colorize({ all: true }), 
+    timestamp(), 
+    prettyPrint()
   ),
   transports: [
     new transports.Console({ level: 'info' }),
@@ -41,7 +50,10 @@ loggers.add('routes', {
 loggers.add('Middleware', {
   format: combine(
     label({ label: 'MIDDLEWARE' }),
-    json()
+    json(),
+    colorize({ all: true }), 
+    timestamp(), 
+    prettyPrint()
   ),
   transports: [
     new transports.Console({ level: 'info' }),
@@ -52,7 +64,10 @@ loggers.add('Middleware', {
 loggers.add('utilities', {
   format: combine(
     label({ label: 'UTILITIES' }),
-    json()
+    json(),
+    colorize({ all: true }), 
+    timestamp(), 
+    prettyPrint()
   ),
   transports: [
     new transports.Console({ level: 'info' }),
