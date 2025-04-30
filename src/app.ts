@@ -5,6 +5,8 @@ import helmet from 'helmet';
 import authRoutes from './routes/auth.routes';
 import eventRoutes from './routes/event.routes';
 import { env } from './config/env';
+import { errorHandler } from './middleware/errorHandler.middleware';
+
 
 const app = express();
 
@@ -46,19 +48,8 @@ app.use(helmet());
 app.use('/api/auth', authRoutes);
 app.use('/api/event', eventRoutes);
 
-
-app.use((err: Error & { statusCode?: number }, req: express.Request, res: express.Response, next: express.NextFunction) => {
-  console.error(err.stack);
-  
-  const statusCode = err.statusCode || 500;
-  const message = err.message || 'Something went wrong';
-  
-  return res.status(statusCode).json({
-    status: 'error',
-    statusCode,
-    message,
-  });
-});
+// error handler middleware
+app.use(errorHandler);
 
 // 404 handler
 app.use((req: express.Request, res: express.Response) => {
