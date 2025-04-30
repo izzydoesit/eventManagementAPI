@@ -1,3 +1,4 @@
+import logger from '@/utils/logger';
 import { Request, Response, NextFunction } from 'express';
 
 export interface CustomError extends Error {
@@ -10,11 +11,18 @@ export function errorHandler(
   res: Response,
   next: NextFunction
 ) {
+  logger.error(err.stack || err.message);
+
   const statusCode = err.statusCode || 500;
+  const message = err.message || 'Internal Server Error';
+  const stack = process.env.NODE_ENV === 'production' ? undefined : err.stack;
+
   res.status(statusCode).json({
+    status: 'error',
     success: false,
-    message: err.message || 'Internal Server Error',
-    stack: process.env.NODE_ENV === 'production' ? undefined : err.stack,
+    statusCode,
+    message,
+    stack,
   });
-  next
+  next();
 }
